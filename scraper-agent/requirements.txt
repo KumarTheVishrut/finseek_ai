@@ -1,4 +1,8 @@
-# scraper-agent/requirements.txt
 fastapi
 uvicorn[standard]
+pydantic
 requests
+beautifulsoup4
+lxml
+python-multipart
+sec-cik-mapper
