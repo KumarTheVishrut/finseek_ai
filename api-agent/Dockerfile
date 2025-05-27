@@ -1,22 +1,18 @@
-FROM python:3.11-slim
-
+FROM python:3.9-slim
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for better caching
+# Install dependencies first for caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
+# Copy application code
 COPY . .
 
-# Expose the port
-EXPOSE 8000
+# Environment variables
+ENV ALPHA_VANTAGE_API_KEY=OO9T445FAP0I5LSV
 
-# Command to run the application
+
+
+ENV PORT=8000
+
 CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
-

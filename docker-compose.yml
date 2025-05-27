@@ -6,15 +6,8 @@ services:
     image: finance/api-agent:latest
     ports:
       - "8000:8000"
-    environment:
-      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
     networks:
       - finance-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   scraper-agent:
     build: ./scraper-agent
