@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  api-agent:
+    build: ./api-agent
+    image: finance/api-agent:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    networks:
+      - finance-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  scraper-agent:
+    build: ./scraper-agent
+    image: finance/scraper-agent:latest
+    ports:
+      - "8001:8001"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    networks:
+      - finance-net
+    depends_on:
+      api-agent:
+        condition: service_healthy
+
+  retriever-agent:
+    build: ./retriever-agent
+    image: finance/retriever-agent:latest
+    environment:
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT}
+      - PINECONE_INDEX=${PINECONE_INDEX}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    ports:
+      - "8002:8002"
+    networks:
+      - finance-net
+    depends_on:
+      api-agent:
+        condition: service_healthy
+
+  lang-agent:
+    build: ./lang-agent
+    image: finance/lang-agent:latest
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    ports:
+      - "8003:8003"
+    networks:
+      - finance-net
+    depends_on:
+      - retriever-agent
+      - api-agent
+
+  streamlit-app:
+    build: ./streamlit-app
+    image: finance/streamlit-app:latest
+    ports:
+      - "8501:8501"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    volumes:
+      - ./streamlit-app:/app
+    depends_on:
+      - api-agent
+      - scraper-agent
+      - retriever-agent
+      - lang-agent
+    networks:
+      - finance-net
+
+networks:
+  finance-net:
+    driver: bridge

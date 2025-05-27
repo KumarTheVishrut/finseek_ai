@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+torch
+transformers
+pyttsx3
+whisper

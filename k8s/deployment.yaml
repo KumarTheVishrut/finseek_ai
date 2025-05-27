@@ -1,0 +1,185 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-agent
+  template:
+    metadata:
+      labels:
+        app: api-agent
+    spec:
+      containers:
+      - name: api-agent
+        image: finance/api-agent:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /docs
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraper-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: scraper-agent
+  template:
+    metadata:
+      labels:
+        app: scraper-agent
+    spec:
+      containers:
+      - name: scraper-agent
+        image: finance/scraper-agent:latest
+        ports:
+        - containerPort: 8001
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retriever-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: retriever-agent
+  template:
+    metadata:
+      labels:
+        app: retriever-agent
+    spec:
+      containers:
+      - name: retriever-agent
+        image: finance/retriever-agent:latest
+        ports:
+        - containerPort: 8002
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        - name: PINECONE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: pinecone-api-key
+        - name: PINECONE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: finseek-config
+              key: pinecone-environment
+        - name: PINECONE_INDEX
+          valueFrom:
+            configMapKeyRef:
+              name: finseek-config
+              key: pinecone-index
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "300m"
+          limits:
+            memory: "1Gi"
+            cpu: "700m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lang-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lang-agent
+  template:
+    metadata:
+      labels:
+        app: lang-agent
+    spec:
+      containers:
+      - name: lang-agent
+        image: finance/lang-agent:latest
+        ports:
+        - containerPort: 8003
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamlit-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: streamlit-app
+  template:
+    metadata:
+      labels:
+        app: streamlit-app
+    spec:
+      containers:
+      - name: streamlit-app
+        image: finance/streamlit-app:latest
+        ports:
+        - containerPort: 8501
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m" 

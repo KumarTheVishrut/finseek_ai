@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: finseek-config
+data:
+  pinecone-environment: "your-pinecone-environment"
+  pinecone-index: "finseek-index"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: finseek-secrets
+type: Opaque
+stringData:
+  huggingface-api-key: "your-huggingface-api-key"
+  pinecone-api-key: "your-pinecone-api-key" 

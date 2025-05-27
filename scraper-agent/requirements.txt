@@ -1,0 +1,4 @@
+# scraper-agent/requirements.txt
+fastapi
+uvicorn[standard]
+requests
