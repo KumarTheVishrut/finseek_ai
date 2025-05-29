@@ -212,7 +212,7 @@ spec:
         - containerPort: 8003
         workingDir: /app
         command: ["/bin/bash"]
-        args: ["-c", "apt-get update && apt-get install -y ffmpeg espeak-ng alsa-utils git && pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 torch==2.1.0 transformers==4.35.0 pyttsx3==2.90 openai-whisper==20231117 && uvicorn lang_agent:app --host 0.0.0.0 --port 8003"]
+        args: ["-c", "apt-get update && apt-get install -y espeak-ng && pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 python-multipart==0.0.6 requests==2.31.0 && uvicorn lang_agent:app --host 0.0.0.0 --port 8003"]
         env:
         - name: HUGGINGFACE_API_KEY
           valueFrom:
@@ -221,11 +221,11 @@ spec:
               key: huggingface-api-key
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "300m"
+            memory: "128Mi"
+            cpu: "100m"
           limits:
-            memory: "2Gi"
-            cpu: "800m"
+            memory: "256Mi"
+            cpu: "200m"
         volumeMounts:
         - name: lang-agent-code
           mountPath: /app
@@ -233,14 +233,14 @@ spec:
           httpGet:
             path: /health
             port: 8003
-          initialDelaySeconds: 120
-          periodSeconds: 30
+          initialDelaySeconds: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8003
-          initialDelaySeconds: 180
-          periodSeconds: 30
+          initialDelaySeconds: 60
+          periodSeconds: 20
       volumes:
       - name: lang-agent-code
         configMap:
