@@ -9,11 +9,11 @@ from datetime import datetime
 
 app = FastAPI(title="Finance Agent Orchestrator")
 
-# Service URLs
-API_AGENT_URL = "http://api-agent:8000"
-SCRAPER_AGENT_URL = "http://scraper-agent:8001"
-RETRIEVER_AGENT_URL = "http://retriever-agent:8002"
-LANG_AGENT_URL = "http://lang-agent:8003"
+# Service URLs for Kubernetes
+API_AGENT_URL = "http://api-agent-service:8000"
+SCRAPER_AGENT_URL = "http://scraper-agent-service:8001"
+RETRIEVER_AGENT_URL = "http://retriever-agent-service:8002"
+LANG_AGENT_URL = "http://lang-agent-service:8003"
 
 # Request models
 class MarketBriefRequest(BaseModel):

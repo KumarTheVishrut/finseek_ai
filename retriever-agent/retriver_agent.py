@@ -13,7 +13,7 @@ app = FastAPI(title="Enhanced Retriever Agent")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = os.getenv("PINECONE_ENVIRONMENT", "us-east1-gcp")
 INDEX_NAME = os.getenv("PINECONE_INDEX", "finance-agent")
-PORTFOLIO_PATH = "/app/portfolio.csv"  # Update path for container
+PORTFOLIO_PATH = os.getenv("PORTFOLIO_PATH", "/app/portfolio.csv")  # Allow environment override
 
 # Initialize Pinecone with new client
 pc = None

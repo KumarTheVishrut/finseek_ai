@@ -1,0 +1,300 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-agent
+  namespace: finseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-agent
+  template:
+    metadata:
+      labels:
+        app: api-agent
+    spec:
+      containers:
+      - name: api-agent
+        image: finance/api-agent:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraper-agent
+  namespace: finseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scraper-agent
+  template:
+    metadata:
+      labels:
+        app: scraper-agent
+    spec:
+      containers:
+      - name: scraper-agent
+        image: finance/scraper-agent:latest
+        ports:
+        - containerPort: 8001
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retriever-agent
+  namespace: finseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: retriever-agent
+  template:
+    metadata:
+      labels:
+        app: retriever-agent
+    spec:
+      containers:
+      - name: retriever-agent
+        image: finance/retriever-agent:latest
+        ports:
+        - containerPort: 8002
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        - name: PINECONE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: pinecone-api-key
+        - name: PINECONE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: finseek-config
+              key: pinecone-environment
+        - name: PINECONE_INDEX
+          valueFrom:
+            configMapKeyRef:
+              name: finseek-config
+              key: pinecone-index
+        - name: PORTFOLIO_PATH
+          value: "/app/portfolio.csv"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: portfolio-data
+          mountPath: /app/portfolio.csv
+          subPath: portfolio.csv
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8002
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      volumes:
+      - name: portfolio-data
+        configMap:
+          name: portfolio-data
+          optional: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lang-agent
+  namespace: finseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lang-agent
+  template:
+    metadata:
+      labels:
+        app: lang-agent
+    spec:
+      containers:
+      - name: lang-agent
+        image: finance/lang-agent:latest
+        ports:
+        - containerPort: 8003
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "300m"
+          limits:
+            memory: "2Gi"
+            cpu: "800m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          initialDelaySeconds: 60
+          periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  namespace: finseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orchestrator
+  template:
+    metadata:
+      labels:
+        app: orchestrator
+    spec:
+      containers:
+      - name: orchestrator
+        image: finance/orchestrator:latest
+        ports:
+        - containerPort: 8004
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8004
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8004
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamlit-app
+  namespace: finseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: streamlit-app
+  template:
+    metadata:
+      labels:
+        app: streamlit-app
+    spec:
+      containers:
+      - name: streamlit-app
+        image: finance/streamlit-app:latest
+        ports:
+        - containerPort: 8501
+        env:
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: finseek-secrets
+              key: huggingface-api-key
+        - name: ORCHESTRATOR_URL
+          value: "http://orchestrator-service:8004"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+        volumeMounts:
+        - name: portfolio-data
+          mountPath: /app/portfolio.csv
+          subPath: portfolio.csv
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8501
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8501
+          initialDelaySeconds: 30
+          periodSeconds: 15
+      volumes:
+      - name: portfolio-data
+        configMap:
+          name: portfolio-data
+          optional: true 
