@@ -19,7 +19,7 @@ device = 0 if torch.cuda.is_available() else -1
 try:
     generator = pipeline(
         "text-generation", 
-        model="microsoft/DialoGPT-medium",
+        model="deepseek-ai/deepseek-vl2-tiny",
         trust_remote_code=True,
         device=device
     )
