@@ -20,7 +20,7 @@ spec:
         - containerPort: 8000
         workingDir: /app
         command: ["/bin/bash"]
-        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 yfinance==0.2.28 pandas==2.1.4 requests==2.31.0 && uvicorn api_agent:app --host 0.0.0.0 --port 8000"]
+        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 yfinance==0.2.28 pandas==2.1.4 requests==2.31.0 && uvicorn api:app --host 0.0.0.0 --port 8000"]
         env:
         - name: HUGGINGFACE_API_KEY
           valueFrom:
@@ -64,7 +64,7 @@ spec:
         - containerPort: 8001
         workingDir: /app
         command: ["/bin/bash"]
-        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 requests==2.31.0 beautifulsoup4==4.12.2 pandas==2.1.4 && uvicorn scraper_agent:app --host 0.0.0.0 --port 8001"]
+        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 requests==2.31.0 beautifulsoup4==4.12.2 pandas==2.1.4 && uvicorn scraper:app --host 0.0.0.0 --port 8001"]
         env:
         - name: HUGGINGFACE_API_KEY
           valueFrom:
@@ -108,7 +108,7 @@ spec:
         - containerPort: 8002
         workingDir: /app
         command: ["/bin/bash"]
-        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 pinecone-client==2.2.4 sentence-transformers==2.2.2 pandas==2.1.4 && uvicorn retriver_agent:app --host 0.0.0.0 --port 8002"]
+        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 pinecone-client==2.2.4 sentence-transformers==2.2.2 pandas==2.1.4 && uvicorn retriever:app --host 0.0.0.0 --port 8002"]
         env:
         - name: HUGGINGFACE_API_KEY
           valueFrom:
@@ -167,7 +167,7 @@ spec:
         - containerPort: 8003
         workingDir: /app
         command: ["/bin/bash"]
-        args: ["-c", "apt-get update && apt-get install -y ffmpeg espeak-ng alsa-utils && pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 torch==2.1.0 transformers==4.35.0 pyttsx3==2.90 openai-whisper==20231117 && uvicorn lang_agent:app --host 0.0.0.0 --port 8003"]
+        args: ["-c", "apt-get update && apt-get install -y ffmpeg espeak-ng alsa-utils && pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 torch==2.1.0 transformers==4.35.0 pyttsx3==2.90 openai-whisper==20231117 && uvicorn lang:app --host 0.0.0.0 --port 8003"]
         env:
         - name: HUGGINGFACE_API_KEY
           valueFrom:
