@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamlit-app
+  namespace: finseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: streamlit-app
+  template:
+    metadata:
+      labels:
+        app: streamlit-app
+    spec:
+      containers:
+      - name: streamlit-app
+        image: python:3.11-slim
+        ports:
+        - containerPort: 8501
+        workingDir: /app
+        command: ["/bin/bash"]
+        args: ["-c", "pip install streamlit==1.28.1 requests==2.31.0 pandas==2.1.4 audio-recorder-streamlit==0.0.8 && streamlit run app.py --server.port=8501 --server.address=0.0.0.0"]
+        env:
+        - name: ORCHESTRATOR_URL
+          value: "http://orchestrator-service:8004"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+      volumes:
+      - name: app-code
+        configMap:
+          name: streamlit-code
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  namespace: finseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orchestrator
+  template:
+    metadata:
+      labels:
+        app: orchestrator
+    spec:
+      containers:
+      - name: orchestrator
+        image: python:3.11-slim
+        ports:
+        - containerPort: 8004
+        workingDir: /app
+        command: ["/bin/bash"]
+        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 httpx==0.25.2 pydantic==2.5.0 pandas==2.1.4 python-multipart==0.0.6 && uvicorn orchestrator:app --host 0.0.0.0 --port 8004"]
+        env:
+        - name: API_AGENT_URL
+          value: "http://api-agent-service:8000"
+        - name: SCRAPER_AGENT_URL
+          value: "http://scraper-agent-service:8001"
+        - name: RETRIEVER_AGENT_URL
+          value: "http://retriever-agent-service:8002"
+        - name: LANG_AGENT_URL
+          value: "http://lang-agent-service:8003"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
+        volumeMounts:
+        - name: orchestrator-code
+          mountPath: /app
+      volumes:
+      - name: orchestrator-code
+        configMap:
+          name: orchestrator-code 
