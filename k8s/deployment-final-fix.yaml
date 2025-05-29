@@ -29,11 +29,11 @@ spec:
               key: huggingface-api-key
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
             memory: "512Mi"
-            cpu: "300m"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
         volumeMounts:
         - name: api-agent-code
           mountPath: /app
@@ -41,13 +41,13 @@ spec:
           httpGet:
             path: /health
             port: 8000
-          initialDelaySeconds: 30
+          initialDelaySeconds: 45
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8000
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 20
       volumes:
       - name: api-agent-code
@@ -85,11 +85,11 @@ spec:
               key: huggingface-api-key
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
             memory: "512Mi"
-            cpu: "300m"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
         volumeMounts:
         - name: scraper-agent-code
           mountPath: /app
@@ -97,13 +97,13 @@ spec:
           httpGet:
             path: /health
             port: 8001
-          initialDelaySeconds: 40
+          initialDelaySeconds: 60
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8001
-          initialDelaySeconds: 80
+          initialDelaySeconds: 120
           periodSeconds: 20
       volumes:
       - name: scraper-agent-code
@@ -155,31 +155,31 @@ spec:
               name: finseek-config
               key: pinecone-index
         - name: PORTFOLIO_PATH
-          value: "/app/portfolio.csv"
+          value: "/data/portfolio.csv"
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "200m"
-          limits:
             memory: "1Gi"
-            cpu: "600m"
+            cpu: "300m"
+          limits:
+            memory: "2Gi"
+            cpu: "800m"
         volumeMounts:
         - name: retriever-agent-code
           mountPath: /app
         - name: portfolio-data
-          mountPath: /app/portfolio.csv
-          subPath: portfolio.csv
+          mountPath: /data
+          readOnly: true
         readinessProbe:
           httpGet:
             path: /health
             port: 8002
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 15
         livenessProbe:
           httpGet:
             path: /health
             port: 8002
-          initialDelaySeconds: 120
+          initialDelaySeconds: 180
           periodSeconds: 30
       volumes:
       - name: retriever-agent-code
@@ -188,7 +188,6 @@ spec:
       - name: portfolio-data
         configMap:
           name: portfolio-data
-          optional: true
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -221,11 +220,11 @@ spec:
               key: huggingface-api-key
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
             memory: "256Mi"
-            cpu: "200m"
+            cpu: "150m"
+          limits:
+            memory: "512Mi"
+            cpu: "300m"
         volumeMounts:
         - name: lang-agent-code
           mountPath: /app
@@ -233,13 +232,13 @@ spec:
           httpGet:
             path: /health
             port: 8003
-          initialDelaySeconds: 30
+          initialDelaySeconds: 45
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8003
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 20
       volumes:
       - name: lang-agent-code
@@ -277,11 +276,11 @@ spec:
               key: huggingface-api-key
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
+            memory: "1Gi"
             cpu: "300m"
+          limits:
+            memory: "2Gi"
+            cpu: "800m"
         volumeMounts:
         - name: orchestrator-code
           mountPath: /app
@@ -289,13 +288,13 @@ spec:
           httpGet:
             path: /health
             port: 8004
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 8004
-          initialDelaySeconds: 60
+          initialDelaySeconds: 120
           periodSeconds: 20
       volumes:
       - name: orchestrator-code
@@ -335,28 +334,28 @@ spec:
           value: "http://orchestrator-service:8004"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
             memory: "512Mi"
-            cpu: "300m"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
         volumeMounts:
         - name: streamlit-app-code
           mountPath: /app
         - name: portfolio-data
-          mountPath: /app/portfolio.csv
-          subPath: portfolio.csv
+          mountPath: /data
+          readOnly: true
         readinessProbe:
           httpGet:
             path: /_stcore/health
             port: 8501
-          initialDelaySeconds: 45
+          initialDelaySeconds: 60
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /_stcore/health
             port: 8501
-          initialDelaySeconds: 90
+          initialDelaySeconds: 120
           periodSeconds: 20
       volumes:
       - name: streamlit-app-code
@@ -364,5 +363,4 @@ spec:
           name: streamlit-app-code
       - name: portfolio-data
         configMap:
-          name: portfolio-data
-          optional: true 
+          name: portfolio-data 
