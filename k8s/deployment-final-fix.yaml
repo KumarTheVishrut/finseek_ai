@@ -271,7 +271,7 @@ spec:
         - containerPort: 8004
         workingDir: /app
         command: ["/bin/bash"]
-        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 httpx==0.25.2 pandas==2.1.4 && uvicorn orchestrator:app --host 0.0.0.0 --port 8004"]
+        args: ["-c", "pip install fastapi==0.104.1 uvicorn[standard]==0.24.0 httpx==0.25.2 pandas==2.1.4 python-multipart==0.0.6 && uvicorn orchestrator:app --host 0.0.0.0 --port 8004"]
         env:
         - name: HUGGINGFACE_API_KEY
           valueFrom:
