@@ -1,137 +1,288 @@
-# FinSeek AI - Multi-Agent Finance Assistant
+# 🤑 FinSeek AI - Multi-Agent Finance Assistant
 
-A sophisticated multi-agent system that delivers spoken market briefs via a Streamlit interface. The system combines real-time market data, financial document analysis, and natural language processing to provide comprehensive financial insights.
+A sophisticated multi-agent finance assistant that delivers spoken market briefs via a Streamlit app. Built with advanced data-ingestion pipelines, vector embeddings for RAG, and orchestrated microservices for comprehensive market intelligence.
 
-## 🚀 Features
+## 🏗️ Architecture Overview
 
-- Real-time market data analysis via Yahoo Finance API
-- Document analysis of financial filings
-- Voice interface with STT/TTS capabilities
-- RAG-powered financial insights
-- Multi-agent architecture with specialized components
+### Agent Roles
+- **🔗 API Agent** (Port 8000): Polls real-time & historical market data via AlphaVantage/Yahoo Finance
+- **🕷️ Scraper Agent** (Port 8001): Crawls financial filings and news using Python loaders
+- **🔍 Retriever Agent** (Port 8002): Indexes embeddings in Pinecone and retrieves top-k chunks
+- **🧠 LLM Agent** (Port 8003): Synthesizes narrative via language models + STT/TTS pipelines  
+- **🎯 Orchestrator** (Port 8004): Coordinates all agents and provides unified API
+- **🎛️ Streamlit App** (Port 8501): Beautiful UI with voice I/O and market dashboard
 
-## 🏗️ Architecture
+### 🛠️ Technology Stack
+- **Microservices**: FastAPI for each agent
+- **Orchestration**: Centralized orchestrator with async coordination
+- **Voice I/O**: Whisper (STT) + pyttsx3 (TTS)
+- **LLM**: Transformers with GPT-2/DialoGPT models
+- **Vector Store**: Pinecone for document embeddings
+- **Frontend**: Streamlit with audio recording
+- **Containerization**: Docker + Docker Compose
+- **Deployment**: Kubernetes ready
 
-- **API Agent**: Real-time market data polling
-- **Scraper Agent**: Financial document crawling
-- **Retriever Agent**: Vector store management and RAG
-- **Analysis Agent**: Financial data analysis
-- **Language Agent**: HuggingFace-powered text generation
-- **Voice Agent**: Speech-to-Text and Text-to-Speech
+## 🚀 Quick Start
 
-## 🛠️ Tech Stack
+### Prerequisites
+- Docker & Docker Compose
+- Python 3.11+
+- Required API Keys (see environment setup)
 
-- FastAPI for microservices
-- Streamlit for UI
-- CrewAI for agent orchestration
-- FAISS for vector storage
-- HuggingFace Transformers for LLM
-- gTTS for voice processing
-- LangChain for LLM integration
-
-## 📦 Setup
-
-1. Clone the repository
-2. Install dependencies:
+### 1. Clone and Setup
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env
+git clone <your-repo>
+cd finseek_ai
+cp environment.env.example .env
 # Edit .env with your API keys
 ```
 
-4. Run with Docker Compose:
+### 2. Build All Services
 ```bash
-docker-compose up --build
+chmod +x build.sh cleanup.sh
+./build.sh
 ```
 
-5. Access the UI at http://localhost:8501
-
-## 🚢 Deployment
-
-### Kubernetes Deployment
-
-1. Create namespace:
+### 3. Run with Docker Compose
 ```bash
-kubectl create namespace finseek
+docker-compose up -d
 ```
 
-2. Create secrets and configmap:
+### 4. Access the Application
+- **Main App**: http://localhost:8501
+- **API Documentation**: 
+  - Orchestrator: http://localhost:8004/docs
+  - API Agent: http://localhost:8000/docs
+  - Other agents: ports 8001-8003
+
+## 🔧 Individual Container Commands
+
+### Build Images
 ```bash
-# Update k8s/config.yaml with your actual values
-kubectl apply -f k8s/config.yaml -n finseek
+# API Agent
+docker build -t finance/api-agent:latest ./api-agent/
+
+# Scraper Agent  
+docker build -t finance/scraper-agent:latest ./scraper-agent/
+
+# Retriever Agent
+docker build -t finance/retriever-agent:latest ./retriever-agent/
+
+# Language Agent
+docker build -t finance/lang-agent:latest ./lang-agent/
+
+# Orchestrator
+docker build -t finance/orchestrator:latest ./orchestrator/
+
+# Streamlit App
+docker build -t finance/streamlit-app:latest ./streamlit-app/
 ```
 
-3. Deploy services:
+### Run Individual Containers
 ```bash
-kubectl apply -f k8s/deployment.yaml -n finseek
-kubectl apply -f k8s/service.yaml -n finseek
+# Create network first
+docker network create finance-net
+
+# API Agent
+docker run -d --name api-agent \
+  --network finance-net \
+  -p 8000:8000 \
+  -e HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY} \
+  finance/api-agent:latest
+
+# Scraper Agent
+docker run -d --name scraper-agent \
+  --network finance-net \
+  -p 8001:8001 \
+  -e HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY} \
+  finance/scraper-agent:latest
+
+# Retriever Agent
+docker run -d --name retriever-agent \
+  --network finance-net \
+  -p 8002:8002 \
+  -e PINECONE_API_KEY=${PINECONE_API_KEY} \
+  -e PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT} \
+  -e PINECONE_INDEX=${PINECONE_INDEX} \
+  finance/retriever-agent:latest
+
+# Language Agent
+docker run -d --name lang-agent \
+  --network finance-net \
+  -p 8003:8003 \
+  -e HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY} \
+  finance/lang-agent:latest
+
+# Orchestrator
+docker run -d --name orchestrator \
+  --network finance-net \
+  -p 8004:8004 \
+  finance/orchestrator:latest
+
+# Streamlit App
+docker run -d --name streamlit-app \
+  --network finance-net \
+  -p 8501:8501 \
+  -v $(pwd)/streamlit-app:/app \
+  finance/streamlit-app:latest
 ```
 
-4. Check deployment status:
-```bash
-kubectl get pods -n finseek
-kubectl get services -n finseek
+## 📊 Portfolio Data
+
+The system uses a portfolio CSV file located at `streamlit-app/portfolio.csv`:
+
+```csv
+ticker,quantity,price_per_stock,current_value
+GOOGL,68,172.9,11756.2
+AAPL,59,200.21,11812.39
+JPM,11,265.29,2918.19
+MSFT,52,460.69,23955.88
+NFLX,90,1211.57,109041.3
 ```
 
-### Cloud Run Deployment
+### Use Case Example
+**User Voice Query**: *"What's our risk exposure in Asia tech stocks today, and highlight any earnings surprises?"*
 
-1. Enable required APIs:
+**AI Response**: *"Today, your Asia tech allocation is 22% of AUM, up from 18% yesterday. TSMC beat estimates by 4%, Samsung missed by 2%. Regional sentiment is neutral with a cautionary tilt due to rising yields."*
+
+## 🎯 Features
+
+### Voice Interface
+- 🎤 **Real-time voice recording** with Streamlit audio recorder
+- 🔊 **Speech-to-text** using OpenAI Whisper
+- 🗣️ **Text-to-speech** responses with pyttsx3
+- 📱 **Mobile-friendly** voice interactions
+
+### Market Intelligence
+- 📈 **Real-time market data** from multiple sources
+- 📰 **News & sentiment analysis** from web scraping
+- 🏢 **Earnings surprises** tracking
+- 🌏 **Regional focus** (Asia, US, Europe, Global)
+
+### Portfolio Management
+- 💼 **Portfolio analysis** with risk exposure
+- 📊 **Real-time valuations** and allocations  
+- 🎯 **Performance metrics** and insights
+- 📋 **Holdings breakdown** with visualizations
+
+### RAG Intelligence
+- 🔍 **Vector similarity search** with Pinecone
+- 📚 **Document retrieval** from financial filings
+- 🧠 **Context-aware responses** using embeddings
+- 🔗 **Multi-source data fusion**
+
+## 🛡️ Environment Variables
+
+Create a `.env` file with:
+
 ```bash
-gcloud services enable cloudbuild.googleapis.com run.googleapis.com
+# Required
+HUGGINGFACE_API_KEY=your_huggingface_key
+PINECONE_API_KEY=your_pinecone_key
+PINECONE_ENVIRONMENT=us-east1-gcp
+PINECONE_INDEX=finance-agent
+
+# Optional  
+ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
+OPENAI_API_KEY=your_openai_key
 ```
 
-2. Set up Cloud Build trigger:
+## 🔄 API Endpoints
+
+### Orchestrator (Port 8004)
+- `POST /voice-query` - Process voice input end-to-end
+- `POST /market-brief` - Generate text-based market analysis
+- `GET /portfolio` - Get portfolio analysis
+- `POST /upsert-documents` - Add documents to vector store
+
+### Individual Agent APIs
+- **API Agent** (8000): `/market-data`, `/risk-exposure`
+- **Scraper Agent** (8001): `/earnings-surprises`, `/news`
+- **Retriever Agent** (8002): `/query`, `/upsert`, `/portfolio-analysis`  
+- **Lang Agent** (8003): `/stt`, `/generate`, `/tts`
+
+## 🧹 Cleanup
+
+Stop and remove all containers:
 ```bash
-gcloud builds triggers create github \
-  --repo-name=your-repo-name \
-  --branch-pattern=main \
-  --build-config=cloudbuild.yaml \
-  --substitutions=_HUGGINGFACE_API_KEY=your-key,_PINECONE_API_KEY=your-key,_PINECONE_ENVIRONMENT=your-env,_PINECONE_INDEX=your-index
+./cleanup.sh
 ```
 
-3. Deploy manually (if needed):
+Or manually:
 ```bash
-gcloud builds submit --config=cloudbuild.yaml
+docker-compose down
+docker system prune -f
 ```
 
-### Environment Variables
+## 🏗️ Project Structure
 
-Required environment variables:
-- `HUGGINGFACE_API_KEY`: For HuggingFace model access
-- `PINECONE_API_KEY`: For vector storage
-- `PINECONE_ENVIRONMENT`: Your Pinecone environment
-- `PINECONE_INDEX`: Your Pinecone index name
+```
+finseek_ai/
+├── api-agent/           # Market data API service
+├── scraper-agent/       # Web scraping service  
+├── retriever-agent/     # Vector search & RAG
+├── lang-agent/          # LLM + Voice processing
+├── orchestrator/        # Service coordination
+├── streamlit-app/       # Frontend application
+├── k8s/                 # Kubernetes deployments
+├── docs/                # Documentation
+├── docker-compose.yml   # Multi-service orchestration
+├── build.sh            # Build all images
+├── cleanup.sh          # Cleanup script
+└── README.md           # This file
+```
 
-### Resource Requirements
+## 🐛 Troubleshooting
 
-- API Agent: 512Mi RAM, 1 CPU
-- Scraper Agent: 512Mi RAM, 1 CPU
-- Retriever Agent: 1Gi RAM, 1 CPU
-- Language Agent: 2Gi RAM, 2 CPU
-- Streamlit App: 512Mi RAM, 1 CPU
+### Common Issues
 
-## 📚 Documentation
+1. **Port conflicts**: Ensure ports 8000-8004 and 8501 are available
+2. **API keys**: Verify all required environment variables are set
+3. **Pinecone connection**: Check your Pinecone API key and environment
+4. **Audio permissions**: Browser needs microphone access for voice features
+5. **Container networking**: Ensure Docker network `finance-net` exists
 
-Detailed documentation for each component is available in the `/docs` directory.
+### Logs
+```bash
+# View orchestrator logs
+docker logs orchestrator
 
-## 🤖 AI Tools Usage
+# View all service logs
+docker-compose logs -f
+```
 
-This project was developed with assistance from:
-- Claude 3.5 Sonnet for code generation and architecture design
-- GitHub Copilot for code completion
-- HuggingFace Transformers for LLM capabilities
+### Health Checks
+- http://localhost:8000/health (API Agent)
+- http://localhost:8001/health (Scraper Agent)  
+- http://localhost:8002/health (Retriever Agent)
+- http://localhost:8003/health (Lang Agent)
+- http://localhost:8004/health (Orchestrator)
 
-## 📄 License
+## 🌟 Performance Features
 
-MIT License
+- **Async operations** for parallel data gathering
+- **Caching** for frequent API calls
+- **Connection pooling** for database operations
+- **Graceful error handling** with fallbacks
+- **Health monitoring** for all services
+- **Horizontal scaling** ready with Kubernetes
 
+## 📈 Future Enhancements
 
+- [ ] **Real-time WebSocket** connections
+- [ ] **Advanced voice commands** with intent recognition
+- [ ] **Multi-language support** for global markets
+- [ ] **Custom alerts** and notifications
+- [ ] **Advanced portfolio optimization** algorithms
+- [ ] **Integration with brokers** for live trading
+
+## 📝 License
+
+Open source - feel free to use and modify for your needs.
+
+---
+
+**🤑 FinSeek AI** - Your AI-powered financial intelligence assistant with voice interaction and multi-agent architecture.
 
 PINECONE_API_KEY=pcsk_2dDRbj_9dsLDnZTurievR2PHtSNck7Jsw6Nkzi6NC9FTFAGpF47SgoXkrMcTxADkQAzDVS
 PINECONE_ENVIRONMENT=us-east-1-aws

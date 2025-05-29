@@ -51,6 +51,21 @@ services:
       - retriever-agent
       - api-agent
 
+  orchestrator:
+    build: ./orchestrator
+    image: finance/orchestrator:latest
+    ports:
+      - "8004:8004"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    networks:
+      - finance-net
+    depends_on:
+      - api-agent
+      - scraper-agent
+      - retriever-agent
+      - lang-agent
+
   streamlit-app:
     build: ./streamlit-app
     image: finance/streamlit-app:latest
@@ -61,10 +76,7 @@ services:
     volumes:
       - ./streamlit-app:/app
     depends_on:
-      - api-agent
-      - scraper-agent
-      - retriever-agent
-      - lang-agent
+      - orchestrator
     networks:
       - finance-net
 
