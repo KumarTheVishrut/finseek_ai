@@ -7,6 +7,7 @@ import pandas as pd
 from io import BytesIO
 import base64
 from audio_recorder_streamlit import audio_recorder
+import os
 
 # Configure Streamlit page
 st.set_page_config(
@@ -16,8 +17,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Service URLs
-ORCHESTRATOR_URL = "http://orchestrator:8004"
+# Service URLs - Use environment variable if available, otherwise default to Kubernetes service
+ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_URL", "http://orchestrator-service:8004")
 
 # Custom CSS for better styling
 st.markdown("""
