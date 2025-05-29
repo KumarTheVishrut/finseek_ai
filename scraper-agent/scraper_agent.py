@@ -521,7 +521,43 @@ async def debug_filing(
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "timestamp": datetime.datetime.now().isoformat()}
+    return {"status": "healthy", "service": "scraper-agent"}
+
+@app.get("/earnings-surprises")
+async def get_earnings_surprises(symbol: str = Query(..., description="Stock symbol to get earnings data for")):
+    """Get earnings surprise data for a given symbol"""
+    try:
+        logger.info(f"Getting earnings surprises for {symbol}")
+        
+        # Mock earnings data - in production would scrape from earnings calendars
+        # Asia tech stocks earnings patterns
+        earnings_data = {
+            "2330": {"surprise_pct": 8.5, "expected": 1.2, "actual": 1.3, "period": "Q4 2024"},
+            "005930.KS": {"surprise_pct": -2.1, "expected": 0.95, "actual": 0.93, "period": "Q4 2024"},
+            "9988.HK": {"surprise_pct": 12.3, "expected": 2.1, "actual": 2.36, "period": "Q4 2024"},
+            "ASML": {"surprise_pct": 5.7, "expected": 4.5, "actual": 4.76, "period": "Q4 2024"},
+            "TSM": {"surprise_pct": 6.2, "expected": 1.8, "actual": 1.91, "period": "Q4 2024"}
+        }
+        
+        # Default data for unknown symbols
+        default_data = {"surprise_pct": 3.2, "expected": 1.0, "actual": 1.032, "period": "Q4 2024"}
+        
+        # Get data for the symbol, fallback to default
+        result = earnings_data.get(symbol, earnings_data.get(symbol.replace(".TW", "").replace(".KS", "").replace(".HK", ""), default_data))
+        
+        return {
+            "symbol": symbol,
+            "surprise_pct": result["surprise_pct"],
+            "expected_eps": result["expected"],
+            "actual_eps": result["actual"],
+            "reporting_period": result["period"],
+            "surprise_direction": "positive" if result["surprise_pct"] > 0 else "negative",
+            "data_source": "mock_earnings_calendar"
+        }
+        
+    except Exception as e:
+        logger.error(f"Earnings surprises error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting earnings data: {str(e)}")
 
 @app.get("/")
 async def root():

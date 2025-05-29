@@ -147,45 +147,40 @@ async def get_historical_data(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing data: {str(e)}")
 
-@app.get("/historical-data/range/{symbol}", response_model=HistoricalDataResponse)
-async def get_historical_data_range(
-    symbol: str,
-    start_date: str,
-    end_date: str = datetime.now().strftime("%Y-%m-%d"),
-    timeframe: TimeFrame = TimeFrame.DAILY,
-    adjusted: bool = True
-):
+@app.get("/risk-exposure")
+async def get_risk_exposure(ticker_list: str = Query(..., description="Comma-separated list of tickers")):
+    """Calculate risk exposure for a list of tickers"""
     try:
-        # First get all historical data
-        response = await get_historical_data(
-            symbol=symbol,
-            timeframe=timeframe,
-            output_size="full",
-            adjusted=adjusted
-        )
+        tickers = [t.strip() for t in ticker_list.split(",")]
         
-        # Filter by date range
-        filtered_points = [
-            point for point in response.data_points
-            if start_date <= point.date <= end_date
-        ]
+        # Simple mock risk calculation - in production would use real risk models
+        # For Asia tech stocks, assume higher volatility
+        asia_tech_risk = 15.5  # Base risk percentage
         
-        if not filtered_points:
-            raise ValueError(f"No data found between {start_date} and {end_date}")
+        # Calculate weighted risk based on known Asia tech tickers
+        asia_tech_tickers = ["2330.TW", "005930.KS", "9988.HK", "ASML", "TSM", "NVDA"]
+        asia_count = sum(1 for ticker in tickers if any(at in ticker for at in asia_tech_tickers))
         
-        return HistoricalDataResponse(
-            symbol=response.symbol,
-            timeframe=response.timeframe,
-            data_points=filtered_points,
-            metadata=response.metadata
-        )
+        if asia_count > 0:
+            risk_multiplier = 1 + (asia_count / len(tickers) * 0.3)  # Up to 30% extra risk
+            total_risk = asia_tech_risk * risk_multiplier
+        else:
+            total_risk = 12.0  # Lower baseline risk
         
-    except HTTPException:
-        raise
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return {
+            "risk_exposure": round(total_risk, 1),
+            "tickers_analyzed": tickers,
+            "asia_tech_exposure": asia_count,
+            "risk_level": "High" if total_risk > 18 else "Medium" if total_risk > 15 else "Low"
+        }
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error filtering data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Risk calculation error: {str(e)}")
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "service": "api-agent", "timestamp": datetime.now().isoformat()}
 
 if __name__ == "__main__":
     import uvicorn
