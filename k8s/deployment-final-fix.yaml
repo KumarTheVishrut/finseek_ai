@@ -158,11 +158,11 @@ spec:
           value: "/data/portfolio.csv"
         resources:
           requests:
-            memory: "2Gi"
-            cpu: "500m"
+            memory: "600Mi"
+            cpu: "250m"
           limits:
-            memory: "4Gi"
-            cpu: "1000m"
+            memory: "1Gi"
+            cpu: "600m"
         volumeMounts:
         - name: retriever-agent-code
           mountPath: /app
@@ -173,18 +173,18 @@ spec:
           httpGet:
             path: /health
             port: 8002
-          initialDelaySeconds: 150
+          initialDelaySeconds: 240
           periodSeconds: 20
           timeoutSeconds: 10
-          failureThreshold: 10
+          failureThreshold: 15
         livenessProbe:
           httpGet:
             path: /health
             port: 8002
-          initialDelaySeconds: 300
+          initialDelaySeconds: 480
           periodSeconds: 40
           timeoutSeconds: 10
-          failureThreshold: 5
+          failureThreshold: 8
       volumes:
       - name: retriever-agent-code
         configMap:
@@ -280,11 +280,11 @@ spec:
               key: huggingface-api-key
         resources:
           requests:
-            memory: "2Gi"
-            cpu: "500m"
+            memory: "400Mi"
+            cpu: "200m"
           limits:
-            memory: "4Gi"
-            cpu: "1000m"
+            memory: "800Mi"
+            cpu: "500m"
         volumeMounts:
         - name: orchestrator-code
           mountPath: /app
@@ -292,18 +292,18 @@ spec:
           httpGet:
             path: /health
             port: 8004
-          initialDelaySeconds: 120
+          initialDelaySeconds: 180
           periodSeconds: 15
           timeoutSeconds: 10
-          failureThreshold: 10
+          failureThreshold: 15
         livenessProbe:
           httpGet:
             path: /health
             port: 8004
-          initialDelaySeconds: 240
+          initialDelaySeconds: 360
           periodSeconds: 30
           timeoutSeconds: 10
-          failureThreshold: 5
+          failureThreshold: 8
       volumes:
       - name: orchestrator-code
         configMap:
